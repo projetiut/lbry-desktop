@@ -18,9 +18,11 @@ const select = (state, props) => {
   const { search } = props.location;
   const urlParams = new URLSearchParams(search);
   const linkedCommentId = urlParams.get('lc');
+  const playlist = urlParams.get('pl');
 
   return {
     linkedComment: makeSelectCommentForCommentId(linkedCommentId)(state),
+    playlist: playlist,
     costInfo: makeSelectCostInfoForUri(props.uri)(state),
     metadata: makeSelectMetadataForUri(props.uri)(state),
     obscureNsfw: !selectShowMatureContent(state),

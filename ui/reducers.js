@@ -14,6 +14,7 @@ import commentsReducer from 'redux/reducers/comments';
 import blockedReducer from 'redux/reducers/blocked';
 import searchReducer from 'redux/reducers/search';
 import reactionsReducer from 'redux/reducers/reactions';
+import playlistsReducer from 'redux/reducers/playlists';
 import syncReducer from 'redux/reducers/sync';
 
 export default history =>
@@ -42,4 +43,5 @@ export default history =>
     wallet: walletReducer,
     sync: syncReducer,
     web: webReducer,
+    playlists: playlistsReducer,
   });
