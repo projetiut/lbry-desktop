@@ -8,8 +8,10 @@ import {
   selectUtxoCounts,
   doFetchUtxoCounts,
   doUtxoConsolidate,
+  doTipClaimMass,
   selectPendingOtherTransactions,
   selectIsConsolidatingUtxos,
+  selectIsMassClaimingTips,
 } from 'lbry-redux';
 import { doOpenModal } from 'redux/actions/app';
 import { selectSyncHash } from 'redux/selectors/sync';
@@ -25,6 +27,7 @@ const select = state => ({
   hasSynced: Boolean(selectSyncHash(state)),
   fetchingUtxoCounts: selectIsFetchingUtxoCounts(state),
   consolidatingUtxos: selectIsConsolidatingUtxos(state),
+  massClaimingTips: selectIsMassClaimingTips(state),
   utxoCounts: selectUtxoCounts(state),
   pendingUtxoConsolidating: selectPendingOtherTransactions(state),
 });
@@ -33,4 +36,5 @@ export default connect(select, {
   doOpenModal,
   doFetchUtxoCounts,
   doUtxoConsolidate,
+  doTipClaimMass,
 })(WalletBalance);

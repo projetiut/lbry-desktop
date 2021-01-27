@@ -21,8 +21,10 @@ type Props = {
   hasSynced: boolean,
   doFetchUtxoCounts: () => void,
   doUtxoConsolidate: () => void,
+  doTipClaimMass: () => void,
   fetchingUtxoCounts: boolean,
   consolidatingUtxos: boolean,
+  massClaimingTips: boolean,
   utxoCounts: { [string]: number },
   pendingUtxoConsolidating: Array<string>,
 };
@@ -40,21 +42,24 @@ const WalletBalance = (props: Props) => {
     hasSynced,
     pendingUtxoConsolidating,
     doUtxoConsolidate,
+    doTipClaimMass,
     doFetchUtxoCounts,
     consolidatingUtxos,
+    massClaimingTips,
     utxoCounts,
   } = props;
   const [detailsExpanded, setDetailsExpanded] = React.useState(false);
-  const { other: otherCount = 0 } = utxoCounts || {};
+  const [massUnlockExpanded, setExpandMassUnlock] = React.useState(false);
+  const { other: otherCount = 0, support: supportCount = 0 } = utxoCounts || {};
 
   const totalBalance = balance + tipsBalance + supportsBalance + claimsBalance;
   const totalLocked = tipsBalance + claimsBalance + supportsBalance;
 
   React.useEffect(() => {
-    if (balance > LARGE_WALLET_BALANCE) {
+    if (balance > LARGE_WALLET_BALANCE && detailsExpanded) {
       doFetchUtxoCounts();
     }
-  }, [doFetchUtxoCounts, balance]);
+  }, [doFetchUtxoCounts, balance, detailsExpanded]);
 
   return (
     <Card
@@ -96,7 +101,47 @@ const WalletBalance = (props: Props) => {
               <dl>
                 <dt>
                   {__('...earned from others')}
-                  <span className="help--dt">({__('Unlock to spend')})</span>
+                  <span className="help--dt">
+                    ({__('Unlock to spend')})
+                    {(massUnlockExpanded || Boolean(tipsBalance)) && (
+                      <>
+                        {' '}
+                        <Button
+                          button="link"
+                          icon={ICONS.UNLOCK}
+                          iconSize={14}
+                          onClick={() => setExpandMassUnlock(!massUnlockExpanded)}
+                        />
+                      </>
+                    )}
+                  </span>
+                  {massUnlockExpanded && (
+                    <p className="help">
+                      <I18nMessage
+                        tokens={{
+                          unlock: (
+                            <Button
+                              button="link"
+                              onClick={() => doTipClaimMass()}
+                              disabled={pendingUtxoConsolidating.length || consolidatingUtxos || massClaimingTips}
+                              label={
+                                pendingUtxoConsolidating.length || consolidatingUtxos || massClaimingTips
+                                  ? __('Working...')
+                                  : __('Unlock All')
+                              }
+                            />
+                          ),
+                          message:
+                            supportCount > WALLET_CONSOLIDATE_UTXOS
+                              ? __('You have many tips. This could take some time.')
+                              : __('of your tips.'),
+                          help: <HelpLink href="https://lbry.com/faq/transaction-types" />,
+                        }}
+                      >
+                        %unlock% %message% This will lower your search position.%help%
+                      </I18nMessage>
+                    </p>
+                  )}
                 </dt>
                 <dd>
                   <CreditAmount amount={tipsBalance} precision={8} />
@@ -157,11 +202,9 @@ const WalletBalance = (props: Props) => {
                     <Button
                       button="link"
                       onClick={() => doUtxoConsolidate()}
-                      disabled={pendingUtxoConsolidating.length || consolidatingUtxos}
+                      disabled={pendingUtxoConsolidating.length || consolidatingUtxos || massClaimingTips}
                       label={
-                        pendingUtxoConsolidating.length || consolidatingUtxos
-                          ? __('Consolidating')
-                          : __('Consolidate Now')
+                        pendingUtxoConsolidating.length || consolidatingUtxos ? __('Working...') : __('Consolidate Now')
                       }
                     />
                   ),
