@@ -44,3 +44,4 @@ export const SYNC_ENABLE = 'SYNC_ENABLE';
 export const REMOVE_BLOCKED = 'remove_blocked';
 export const IMAGE_UPLOAD = 'image_upload';
 export const MOBILE_SEARCH = 'mobile_search';
+export const PLAYLIST_ADD = 'playlist_add';

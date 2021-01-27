@@ -5,15 +5,16 @@ import * as ACTIONS from 'constants/action_types';
 type PlaylistItem = {
   url: string,
   leftOff: number,
-  added?: Date,
+  added?: number,
 };
 
 type Playlist = {
   items: Array<PlaylistItem>,
   name: string,
-  userList: boolean,
-  saved: boolean, //
-  collectionUrl?: string,
+  createdAt: number,
+  updatedAt: number,
+  collectionClaimId: ?string,
+  builtin: boolean,
 };
 
 type PlaylistState = {
@@ -22,51 +23,68 @@ type PlaylistState = {
 // find some way to store resolved pl={url} collection playlists that are not saved
 // find some way to copy url collection playlists to saved/sidebar playlists
 const defaultState: PlaylistState = {
-  lists: {
+  listsById: {
     watchlater: {
-      items: [{ url: 'lbry://@seriously#5/seriouspublish#c', leftOff: 0 }],
-      name: 'watch later',
-      userList: false,
-      saved: true,
+      items: [{ url: 'lbry://@seriously#5/seriouspublish#c'}],
+      id: 'watchlater',
+      name: 'Watch Later',
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      collectionClaimId: null,
+      builtin: true,
     },
     favorites: {
       items: [
-        { url: 'lbry://@seriously#5/seriouspublish#c', leftOff: 0 },
-        { url: 'lbry://@JIGGYTOM#4/niece#a', leftOff: 0 },
-        { url: 'lbry://@Karmakut#7/my-new-favorite-vehicle-in-squad-ft#4', leftOff: 0 },
+        { url: 'lbry://@seriously#5/seriouspublish#c'},
+        { url: 'lbry://@JIGGYTOM#4/niece#a'},
+        { url: 'lbry://@Karmakut#7/my-new-favorite-vehicle-in-squad-ft#4'},
       ],
-      name: 'favorites',
-      userList: false,
-      saved: true,
+      id: 'favorites',
+      name: 'Favorites',
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      collectionClaimId: null,
+      builtin: true,
     },
     // randomid to start with, id becomes
-    mygarbageid: {
-      items: [],
-      name: 'garbage',
-      userList: true,
-      saved: true,
-    },
+    // mygarbageid: {
+    //   items: [],
+    //   name: 'garbage',
+    //   createdAt: Date.now(),
+    //   updatedAt: Date.now(),
+    //   collectionClaimId: null,
+    //   builtin: false,
+    // },
   },
+  error: null,
 };
 
 export default handleActions(
   {
-    [ACTIONS.PLAYLIST_ADD]: (state, action) => {
-      const { lists } = state;
-      const { name } = action.data;
-      if (lists && !lists[name]) {
-        lists[name] = {
-          items: [],
-          name: name,
-        };
-      }
-      return Object.assign({}, state, {
-        lists,
-      });
+    [ACTIONS.PLAYLIST_CREATE]: (state, action) => {
+      const params = action.data; // { id:, items: Array<any>}
+      const newListTemplate = {
+        id: params.id,
+        name: params.name,
+        items: [],
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        collectionClaimId: null,
+        builtin: false,
+      };
+
+      const newList = Object.assign({}, newListTemplate, { ...params });
+      const { listsById: lists } = state;
+      const newLists = Object.assign({}, lists, { [params.id]: newList });
+
+      return {
+        ...state,
+        listsById: newLists,
+      };
     },
 
     [ACTIONS.PLAYLIST_DELETE]: (state, action) => {
-      const { lists } = state;
+      const { listsById: lists } = state;
       const { name } = action.data;
       if (lists && lists[name] && lists[name].userList) {
         delete lists[name];
@@ -76,39 +94,23 @@ export default handleActions(
       });
     },
 
-    [ACTIONS.PLAYLIST_LIST_ADD]: (state, action) => {
-      const { lists } = state;
-      const { listName, url } = action.data;
-      if (lists[listName]) {
-        lists[listName].items.push(url);
-      }
+    [ACTIONS.PLAYLIST_UPDATE]: (state, action) => {
+      const { listsById: lists } = state;
+      const newLists = Object.assign({}, lists);
 
-      return Object.assign({}, state, {
-        lists,
-      });
+      const { name, playlist } = action;
+      newLists[name] = playlist;
+      newLists[name]['updatedAt'] = Date.now();
+
+      return {
+        ...state,
+        listsById: newLists,
+      };
     },
-
-    [ACTIONS.PLAYLIST_LIST_DELETE]: (state, action) => {
-      const { lists } = state;
-      const { listName, url } = action.data;
-      if (lists[listName]) {
-        lists[listName].items.push(url);
-      }
+    [ACTIONS.PLAYLIST_ERROR]: (state, action) => {
 
       return Object.assign({}, state, {
-        lists,
-      });
-    },
-
-    [ACTIONS.PLAYLIST_LIST_UPDATE]: (state, action) => {
-      const { lists } = state;
-      const { listName, list } = action.data;
-      if (lists[listName]) {
-        lists[listName] = list;
-      }
-
-      return Object.assign({}, state, {
-        lists,
+        error: action.data.message,
       });
     },
   },

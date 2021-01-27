@@ -43,6 +43,7 @@ function FilePage(props: Props) {
     linkedComment,
     setPrimaryUri,
     videoTheaterMode,
+    playlist,
   } = props;
   const cost = costInfo ? costInfo.cost : null;
   const hasFileInfo = fileInfo !== undefined;

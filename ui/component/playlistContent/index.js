@@ -1,9 +1,9 @@
 import { connect } from 'react-redux';
 import PlaylistContent from './view';
-import { makeSelectUrlsForPlaylist } from 'redux/selectors/playlists';
+import { makeSelectUrlsForPlaylistId } from 'redux/selectors/playlists';
 
 const select = (state, props) => ({
-  claims: makeSelectUrlsForPlaylist(props.name)(state),
+  claims: makeSelectUrlsForPlaylistId(props.name)(state),
 });
 
 const perform = dispatch => ({});

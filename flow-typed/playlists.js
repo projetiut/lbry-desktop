@@ -14,3 +14,9 @@ declare type Playlist = {
 declare type PlaylistState = {
   lists: {[string]: Playlist},
 }
+
+declare type PlaylistUpdateParams = {
+  remove: boolean,
+  claims: Array<GenericClaim>,
+  name: string,
+}
