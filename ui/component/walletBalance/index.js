@@ -8,7 +8,6 @@ import {
   selectUtxoCounts,
   doFetchUtxoCounts,
   doUtxoConsolidate,
-  doTipClaimMass,
   selectPendingOtherTransactions,
   selectIsConsolidatingUtxos,
   selectIsMassClaimingTips,
@@ -36,5 +35,4 @@ export default connect(select, {
   doOpenModal,
   doFetchUtxoCounts,
   doUtxoConsolidate,
-  doTipClaimMass,
 })(WalletBalance);

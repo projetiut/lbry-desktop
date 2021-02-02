@@ -21,7 +21,6 @@ type Props = {
   hasSynced: boolean,
   doFetchUtxoCounts: () => void,
   doUtxoConsolidate: () => void,
-  doTipClaimMass: () => void,
   fetchingUtxoCounts: boolean,
   consolidatingUtxos: boolean,
   massClaimingTips: boolean,
@@ -29,7 +28,7 @@ type Props = {
   pendingUtxoConsolidating: Array<string>,
 };
 
-const WALLET_CONSOLIDATE_UTXOS = 400;
+export const WALLET_CONSOLIDATE_UTXOS = 400;
 const LARGE_WALLET_BALANCE = 100;
 
 const WalletBalance = (props: Props) => {
@@ -42,15 +41,14 @@ const WalletBalance = (props: Props) => {
     hasSynced,
     pendingUtxoConsolidating,
     doUtxoConsolidate,
-    doTipClaimMass,
     doFetchUtxoCounts,
     consolidatingUtxos,
     massClaimingTips,
     utxoCounts,
   } = props;
   const [detailsExpanded, setDetailsExpanded] = React.useState(false);
-  const [massUnlockExpanded, setExpandMassUnlock] = React.useState(false);
-  const { other: otherCount = 0, support: supportCount = 0 } = utxoCounts || {};
+
+  const { other: otherCount = 0 } = utxoCounts || {};
 
   const totalBalance = balance + tipsBalance + supportsBalance + claimsBalance;
   const totalLocked = tipsBalance + claimsBalance + supportsBalance;
@@ -60,12 +58,6 @@ const WalletBalance = (props: Props) => {
       doFetchUtxoCounts();
     }
   }, [doFetchUtxoCounts, balance, detailsExpanded]);
-
-  React.useEffect(() => {
-    if (massUnlockExpanded && !tipsBalance) {
-      setExpandMassUnlock(false);
-    }
-  }, [massUnlockExpanded, tipsBalance]);
 
   return (
     <Card
@@ -111,45 +103,16 @@ const WalletBalance = (props: Props) => {
                 </dt>
                 <dd>
                   <span className="dd__text">
-                    {(massUnlockExpanded || Boolean(tipsBalance)) && (
+                    {Boolean(tipsBalance) && (
                       <Button
                         button="link"
                         className="dd__button"
                         icon={ICONS.UNLOCK}
-                        onClick={() => setExpandMassUnlock(!massUnlockExpanded)}
+                        onClick={() => doOpenModal(MODALS.MASS_TIP_UNLOCK)}
                       />
                     )}
                     <CreditAmount amount={tipsBalance} precision={4} />
                   </span>
-                  {massUnlockExpanded && (
-                    <div>
-                      <span className="help--warning">
-                        <I18nMessage
-                          tokens={{
-                            lbc: <LbcSymbol />,
-                            unlock: (
-                              <Button
-                                button="link"
-                                onClick={() => doTipClaimMass()}
-                                disabled={pendingUtxoConsolidating.length || consolidatingUtxos || massClaimingTips}
-                                label={
-                                  pendingUtxoConsolidating.length || consolidatingUtxos || massClaimingTips
-                                    ? __('Working...')
-                                    : __('Unlock All')
-                                }
-                              />
-                            ),
-                          }}
-                        >
-                          These %lbc% help your content in search rankings. You can unlock them but that's less fun.
-                          %unlock%
-                        </I18nMessage>
-                        {supportCount > WALLET_CONSOLIDATE_UTXOS && (
-                          <span className="help">{__('You have a lot of tips. This could take some time.')}</span>
-                        )}
-                      </span>
-                    </div>
-                  )}
                 </dd>
 
                 <dt>
@@ -209,7 +172,9 @@ const WalletBalance = (props: Props) => {
                       onClick={() => doUtxoConsolidate()}
                       disabled={pendingUtxoConsolidating.length || consolidatingUtxos || massClaimingTips}
                       label={
-                        pendingUtxoConsolidating.length || consolidatingUtxos ? __('Working...') : __('Consolidate Now')
+                        pendingUtxoConsolidating.length || +consolidatingUtxos
+                          ? __('Working...')
+                          : __('Consolidate Now')
                       }
                     />
                   ),
