@@ -61,6 +61,12 @@ const WalletBalance = (props: Props) => {
     }
   }, [doFetchUtxoCounts, balance, detailsExpanded]);
 
+  React.useEffect(() => {
+    if (massUnlockExpanded && !tipsBalance) {
+      setExpandMassUnlock(false);
+    }
+  }, [massUnlockExpanded, tipsBalance]);
+
   return (
     <Card
       title={<LbcSymbol postfix={formatNumberWithCommas(totalBalance)} isTitle />}
@@ -76,7 +82,7 @@ const WalletBalance = (props: Props) => {
       actions={
         <>
           <h2 className="section__title--small">
-            <I18nMessage tokens={{ lbc_amount: <CreditAmount amount={balance} precision={8} /> }}>
+            <I18nMessage tokens={{ lbc_amount: <CreditAmount amount={balance} precision={4} /> }}>
               %lbc_amount% immediately spendable
             </I18nMessage>
           </h2>
@@ -84,7 +90,7 @@ const WalletBalance = (props: Props) => {
           <h2 className="section__title--small">
             <I18nMessage
               tokens={{
-                lbc_amount: <CreditAmount amount={totalLocked} precision={8} />,
+                lbc_amount: <CreditAmount amount={totalLocked} precision={4} />,
               }}
             >
               %lbc_amount% boosting content
@@ -100,67 +106,66 @@ const WalletBalance = (props: Props) => {
             <div className="section__subtitle">
               <dl>
                 <dt>
-                  {__('...earned from others')}
-                  <span className="help--dt">
-                    ({__('Unlock to spend')})
-                    {(massUnlockExpanded || Boolean(tipsBalance)) && (
-                      <>
-                        {' '}
-                        <Button
-                          button="link"
-                          icon={ICONS.UNLOCK}
-                          iconSize={14}
-                          onClick={() => setExpandMassUnlock(!massUnlockExpanded)}
-                        />
-                      </>
-                    )}
-                  </span>
-                  {massUnlockExpanded && (
-                    <p className="help">
-                      <I18nMessage
-                        tokens={{
-                          unlock: (
-                            <Button
-                              button="link"
-                              onClick={() => doTipClaimMass()}
-                              disabled={pendingUtxoConsolidating.length || consolidatingUtxos || massClaimingTips}
-                              label={
-                                pendingUtxoConsolidating.length || consolidatingUtxos || massClaimingTips
-                                  ? __('Working...')
-                                  : __('Unlock All')
-                              }
-                            />
-                          ),
-                          message:
-                            supportCount > WALLET_CONSOLIDATE_UTXOS
-                              ? __('You have many tips. This could take some time.')
-                              : __('of your tips.'),
-                          help: <HelpLink href="https://lbry.com/faq/transaction-types" />,
-                        }}
-                      >
-                        %unlock% %message% This will lower your search position.%help%
-                      </I18nMessage>
-                    </p>
-                  )}
+                  <span className="dt__text">{__('...earned from others')}</span>
+                  <span className="help--dt">({__('Unlock to spend')})</span>
                 </dt>
                 <dd>
-                  <CreditAmount amount={tipsBalance} precision={8} />
+                  <span className="dd__text">
+                    {(massUnlockExpanded || Boolean(tipsBalance)) && (
+                      <Button
+                        button="link"
+                        className="dd__button"
+                        icon={ICONS.UNLOCK}
+                        onClick={() => setExpandMassUnlock(!massUnlockExpanded)}
+                      />
+                    )}
+                    <CreditAmount amount={tipsBalance} precision={4} />
+                  </span>
+                  {massUnlockExpanded && (
+                    <div>
+                      <span className="help--warning">
+                        <I18nMessage
+                          tokens={{
+                            lbc: <LbcSymbol />,
+                            unlock: (
+                              <Button
+                                button="link"
+                                onClick={() => doTipClaimMass()}
+                                disabled={pendingUtxoConsolidating.length || consolidatingUtxos || massClaimingTips}
+                                label={
+                                  pendingUtxoConsolidating.length || consolidatingUtxos || massClaimingTips
+                                    ? __('Working...')
+                                    : __('Unlock All')
+                                }
+                              />
+                            ),
+                          }}
+                        >
+                          These %lbc% help your content in search rankings. You can unlock them but that's less fun.
+                          %unlock%
+                        </I18nMessage>
+                        {supportCount > WALLET_CONSOLIDATE_UTXOS && (
+                          <span className="help">{__('You have a lot of tips. This could take some time.')}</span>
+                        )}
+                      </span>
+                    </div>
+                  )}
                 </dd>
 
                 <dt>
-                  {__('...on initial publishes')}
+                  <span className="dt__text">{__('...on initial publishes')}</span>
                   <span className="help--dt">({__('Delete or edit past content to spend')})</span>
                 </dt>
                 <dd>
-                  <CreditAmount amount={claimsBalance} precision={8} />
+                  <CreditAmount amount={claimsBalance} precision={4} />
                 </dd>
 
                 <dt>
-                  {__('...supporting content')}
+                  <span className="dt__text">{__('...supporting content')}</span>
                   <span className="help--dt">({__('Delete supports to spend')})</span>
                 </dt>
                 <dd>
-                  <CreditAmount amount={supportsBalance} precision={8} />
+                  <CreditAmount amount={supportsBalance} precision={4} />
                 </dd>
               </dl>
             </div>

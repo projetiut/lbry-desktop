@@ -1562,5 +1562,7 @@
   "Delete supports to spend": "Delete supports to spend",
   "%lbc_amount% boosting content": "%lbc_amount% boosting content",
   "Deposit cannot be higher than your available balance: %balance%": "Deposit cannot be higher than your available balance: %balance%",
+  "These %lbc% help your content in search rankings. You can unlock them but that's less fun. %unlock%": "These %lbc% help your content in search rankings. You can unlock them but that's less fun. %unlock%",
+  "You have a lot of tips. This could take some time.": "You have a lot of tips. This could take some time.",
   "--end--": "--end--"
 }

@@ -88,11 +88,33 @@ dt {
   font-weight: bold;
 }
 
+.dt__text {
+  margin-right: var(--spacing-s);
+}
+
 dd {
+  align-items: flex-start;
   flex-basis: 45%;
   flex-grow: 1;
   margin: 0;
   text-align: right;
+
+  .help--warning {
+    margin-bottom: 0;
+    margin-top: var(--spacing-s);
+    text-align: left;
+  }
+}
+
+.dd__text {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.dd__button {
+  padding: 0.2rem;
+  margin-right: var(--spacing-s);
+  align-self: flex-start;
 }
 
 dt,
@@ -267,7 +289,6 @@ textarea {
   @extend .help;
   display: inline-block;
   margin-top: 0;
-  margin-left: var(--spacing-s);
 }
 
 .empty {
