@@ -23,9 +23,10 @@ type Props = {
   doUtxoConsolidate: () => void,
   fetchingUtxoCounts: boolean,
   consolidatingUtxos: boolean,
+  consolidateIsPending: boolean,
   massClaimingTips: boolean,
+  massClaimIsPending: boolean,
   utxoCounts: { [string]: number },
-  pendingUtxoConsolidating: Array<string>,
 };
 
 export const WALLET_CONSOLIDATE_UTXOS = 400;
@@ -39,11 +40,12 @@ const WalletBalance = (props: Props) => {
     tipsBalance,
     doOpenModal,
     hasSynced,
-    pendingUtxoConsolidating,
     doUtxoConsolidate,
     doFetchUtxoCounts,
     consolidatingUtxos,
+    consolidateIsPending,
     massClaimingTips,
+    massClaimIsPending,
     utxoCounts,
   } = props;
   const [detailsExpanded, setDetailsExpanded] = React.useState(false);
@@ -52,6 +54,7 @@ const WalletBalance = (props: Props) => {
 
   const totalBalance = balance + tipsBalance + supportsBalance + claimsBalance;
   const totalLocked = tipsBalance + claimsBalance + supportsBalance;
+  const operationPending = massClaimIsPending || massClaimingTips || consolidateIsPending || consolidatingUtxos;
 
   React.useEffect(() => {
     if (balance > LARGE_WALLET_BALANCE && detailsExpanded) {
@@ -107,6 +110,7 @@ const WalletBalance = (props: Props) => {
                       <Button
                         button="link"
                         className="dd__button"
+                        disabled={operationPending}
                         icon={ICONS.UNLOCK}
                         onClick={() => doOpenModal(MODALS.MASS_TIP_UNLOCK)}
                       />
@@ -162,7 +166,7 @@ const WalletBalance = (props: Props) => {
               onClick={() => doOpenModal(MODALS.WALLET_SEND)}
             />
           </div>
-          {(otherCount > WALLET_CONSOLIDATE_UTXOS || pendingUtxoConsolidating.length || consolidatingUtxos) && (
+          {(otherCount > WALLET_CONSOLIDATE_UTXOS || consolidateIsPending || consolidatingUtxos) && (
             <p className="help">
               <I18nMessage
                 tokens={{
@@ -170,11 +174,9 @@ const WalletBalance = (props: Props) => {
                     <Button
                       button="link"
                       onClick={() => doUtxoConsolidate()}
-                      disabled={pendingUtxoConsolidating.length || consolidatingUtxos || massClaimingTips}
+                      disabled={operationPending}
                       label={
-                        pendingUtxoConsolidating.length || +consolidatingUtxos
-                          ? __('Working...')
-                          : __('Consolidate Now')
+                        consolidateIsPending || consolidatingUtxos ? __('Consolidating...') : __('Consolidate Now')
                       }
                     />
                   ),
