@@ -1,14 +1,13 @@
 // @flow
 import * as ACTIONS from 'constants/action_types';
 import * as REACTION_TYPES from 'constants/reactions';
-import { Lbry, selectClaimsByUri, selectMyChannelClaims } from 'lbry-redux';
+import { Lbry, selectClaimsByUri } from 'lbry-redux';
 import { doToast, doSeeNotifications } from 'redux/actions/notifications';
 import {
   makeSelectCommentIdsForUri,
   makeSelectMyReactionsForComment,
   makeSelectOthersReactionsForComment,
   selectPendingCommentReacts,
-  selectCommentChannel,
 } from 'redux/selectors/comments';
 import { makeSelectNotificationForCommentId } from 'redux/selectors/notifications';
 import { selectActiveChannelClaim } from 'redux/selectors/app';
@@ -49,15 +48,6 @@ export function doCommentList(uri: string, page: number = 1, pageSize: number = 
       });
   };
 }
-
-// export function doSetCommentChannel(channelName: string) {
-//   return (dispatch: Dispatch) => {
-//     dispatch({
-//       type: ACTIONS.COMMENT_SET_CHANNEL,
-//       data: channelName,
-//     });
-//   };
-// }
 
 export function doCommentReactList(uri: string | null, commentId?: string) {
   return (dispatch: Dispatch, getState: GetState) => {
@@ -101,39 +91,38 @@ export function doCommentReactList(uri: string | null, commentId?: string) {
 export function doCommentReact(commentId: string, type: string) {
   return (dispatch: Dispatch, getState: GetState) => {
     const state = getState();
-    const channel = selectCommentChannel(state);
+    const activeChannelClaim = selectActiveChannelClaim(state);
     const pendingReacts = selectPendingCommentReacts(state);
-    const myChannels = selectMyChannelClaims(state);
     const notification = makeSelectNotificationForCommentId(commentId)(state);
+
+    if (!activeChannelClaim) {
+      console.error('Unable to react to comment. No activeChannel is set.'); // eslint-disable-line
+      return;
+    }
+
     if (notification && !notification.is_seen) {
       dispatch(doSeeNotifications([notification.id]));
     }
+
     const exclusiveTypes = {
       [REACTION_TYPES.LIKE]: REACTION_TYPES.DISLIKE,
       [REACTION_TYPES.DISLIKE]: REACTION_TYPES.LIKE,
     };
-    if (!channel || !myChannels) {
-      dispatch({
-        type: ACTIONS.COMMENT_REACTION_LIST_FAILED,
-        data: 'No active channel found',
-      });
-      return;
-    }
+
     if (pendingReacts.includes(commentId + exclusiveTypes[type]) || pendingReacts.includes(commentId + type)) {
       // ignore dislikes during likes, for example
       return;
     }
+
     let myReacts = makeSelectMyReactionsForComment(commentId)(state);
     const othersReacts = makeSelectOthersReactionsForComment(commentId)(state);
-    const claimForChannelName = myChannels.find(chan => chan.name === channel);
-    const channelId = claimForChannelName && claimForChannelName.claim_id;
-
     const params: CommentReactParams = {
       comment_ids: commentId,
-      channel_name: channel,
-      channel_id: channelId,
+      channel_name: activeChannelClaim.name,
+      channel_id: activeChannelClaim.claim_id,
       react_type: type,
     };
+
     if (myReacts.includes(type)) {
       params['remove'] = true;
       myReacts.splice(myReacts.indexOf(type), 1);
