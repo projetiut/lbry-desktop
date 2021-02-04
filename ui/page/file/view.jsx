@@ -115,18 +115,18 @@ function FilePage(props: Props) {
   return (
     <Page className="file-page" filePage>
       <div className={classnames('section card-stack', `file-page__${renderMode}`)}>
-        {/* {renderFilePageLayout()} */}
+        {renderFilePageLayout()}
 
         <div className="file-page__secondary-content">
           <div>
-            {/* {RENDER_MODES.FLOATING_MODES.includes(renderMode) && <FileTitle uri={uri} />} */}
+            {RENDER_MODES.FLOATING_MODES.includes(renderMode) && <FileTitle uri={uri} />}
             <CommentsList uri={uri} linkedComment={linkedComment} />
           </div>
-          {/* {videoTheaterMode && <RecommendedContent uri={uri} />} */}
+          {videoTheaterMode && <RecommendedContent uri={uri} />}
         </div>
       </div>
 
-      {/* {!videoTheaterMode && <RecommendedContent uri={uri} />} */}
+      {!videoTheaterMode && <RecommendedContent uri={uri} />}
     </Page>
   );
 }

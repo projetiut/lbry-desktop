@@ -31,16 +31,23 @@ function ChannelListItem(props: ListItemProps) {
 }
 
 function ChannelSelector(props: Props) {
-  const { channels, selectedChannelUrl, onChannelSelect } = props;
+  const { channels, activeChannelClaim, setActiveChannel } = props;
+  const activeChannelUrl = activeChannelClaim && activeChannelClaim.canonical_url;
 
-  if (!channels || !selectedChannelUrl) {
+  function handleChannelSelect(channelClaim) {
+    if (channelClaim.claim_id !== activeChannelClaim.claim_id) {
+      setActiveChannel(channelClaim.claim_id);
+    }
+  }
+
+  if (!channels || !activeChannelUrl) {
     return null;
   }
 
   return (
-    <Menu>
+    <Menu className="channel__selector">
       <MenuButton className="">
-        <ChannelListItem uri={selectedChannelUrl} isSelected />
+        <ChannelListItem uri={activeChannelUrl} isSelected />
       </MenuButton>
       <MenuList className="menu__list channel__list">
         {channels &&
@@ -48,7 +55,7 @@ function ChannelSelector(props: Props) {
             <MenuItem
               key={channel.canonical_url}
               onSelect={() => {
-                if (selectedChannelUrl !== channel.canonical_url) {
+                if (activeChannelUrl !== channel.canonical_url) {
                   onChannelSelect(channel.canonical_url);
                 }
               }}

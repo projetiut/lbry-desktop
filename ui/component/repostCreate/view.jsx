@@ -7,6 +7,7 @@ import { useHistory } from 'react-router';
 import Card from 'component/common/card';
 import Button from 'component/button';
 import SelectChannel from 'component/selectChannel';
+import ChannelSelector from 'component/channelSelector';
 import { FormField } from 'component/common/form';
 import { parseURI, isNameValid, creditsToString, isURIValid, normalizeURI } from 'lbry-redux';
 import usePersistedState from 'effects/use-persisted-state';
@@ -310,6 +311,8 @@ function RepostCreate(props: Props) {
 
   return (
     <>
+      <ChannelSelector />
+
       <Card
         actions={
           <div>
@@ -362,11 +365,12 @@ function RepostCreate(props: Props) {
                   />
                 </fieldset-group>
               </fieldset-section>
-              <SelectChannel
-                label={__('Channel to repost on')}
+
+              {/* <SelectChannel
+                label={__('Channel to repost to')}
                 channel={repostChannel}
                 onChannelChange={newChannel => setRepostChannel(newChannel)}
-              />
+              /> */}
 
               <FormField
                 type="number"
@@ -378,9 +382,13 @@ function RepostCreate(props: Props) {
                 label={<LbcSymbol postfix={__('Support --[button to support a claim]--')} size={14} />}
                 value={repostBid}
                 error={repostBidError}
-                helper={__('Winning amount: %amount%', {
-                  amount: Number(takeoverAmount).toFixed(2),
-                })}
+                helper={
+                  <>
+                    {__('Winning amount: %amount%', {
+                      amount: Number(takeoverAmount).toFixed(2),
+                    })}
+                  </>
+                }
                 disabled={!enteredRepostName || resolvingRepost}
                 onChange={event => setRepostBid(event.target.value)}
                 onWheel={e => e.stopPropagation()}
