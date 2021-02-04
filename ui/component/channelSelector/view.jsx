@@ -31,12 +31,12 @@ function ChannelListItem(props: ListItemProps) {
 }
 
 function ChannelSelector(props: Props) {
-  const { channels, activeChannelClaim, setActiveChannel } = props;
+  const { channels, activeChannelClaim, doSetActiveChannel } = props;
   const activeChannelUrl = activeChannelClaim && activeChannelClaim.canonical_url;
 
   function handleChannelSelect(channelClaim) {
     if (channelClaim.claim_id !== activeChannelClaim.claim_id) {
-      setActiveChannel(channelClaim.claim_id);
+      doSetActiveChannel(channelClaim.claim_id);
     }
   }
 
@@ -52,14 +52,7 @@ function ChannelSelector(props: Props) {
       <MenuList className="menu__list channel__list">
         {channels &&
           channels.map(channel => (
-            <MenuItem
-              key={channel.canonical_url}
-              onSelect={() => {
-                if (activeChannelUrl !== channel.canonical_url) {
-                  onChannelSelect(channel.canonical_url);
-                }
-              }}
-            >
+            <MenuItem key={channel.canonical_url} onSelect={() => handleChannelSelect(channel)}>
               <ChannelListItem uri={channel.canonical_url} />
             </MenuItem>
           ))}

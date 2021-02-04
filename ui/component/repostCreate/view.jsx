@@ -16,6 +16,8 @@ import LbcSymbol from 'component/common/lbc-symbol';
 import ClaimPreview from 'component/claimPreview';
 import { URL as SITE_URL, URL_LOCAL, URL_DEV } from 'config';
 import HelpLink from 'component/common/help-link';
+import WalletSpendableBalanceHelp from 'component/walletSpendableBalanceHelp';
+import Spinner from 'component/spinner';
 
 type Props = {
   doToast: ({ message: string }) => void,
@@ -40,6 +42,7 @@ type Props = {
   enteredRepostAmount: number,
   isResolvingPassedRepost: boolean,
   isResolvingEnteredRepost: boolean,
+  activeChannelClaim: ?ChannelClaim,
 };
 
 function RepostCreate(props: Props) {
@@ -64,12 +67,13 @@ function RepostCreate(props: Props) {
     passedRepostAmount,
     isResolvingPassedRepost,
     isResolvingEnteredRepost,
+    activeChannelClaim,
+    fetchingMyChannels,
   } = props;
 
   const defaultName = name || (claim && claim.name) || '';
   const contentClaimId = claim && claim.claim_id;
   const enteredClaimId = enteredContentClaim && enteredContentClaim.claim_id;
-  const [repostChannel, setRepostChannel] = usePersistedState('repost-channel', 'anonymous');
 
   const [repostBid, setRepostBid] = React.useState(0.01);
   const [repostBidError, setRepostBidError] = React.useState(undefined);
@@ -81,9 +85,7 @@ function RepostCreate(props: Props) {
 
   const { replace, goBack } = useHistory();
   const resolvingRepost = isResolvingEnteredRepost || isResolvingPassedRepost;
-  const repostUrlName = `lbry://${
-    !repostChannel || repostChannel === CHANNEL_NEW || repostChannel === 'anonymous' ? '' : `${repostChannel}/`
-  }`;
+  const repostUrlName = `lbry://${!activeChannelClaim ? '' : `${activeChannelClaim.name}/`}`;
 
   const contentFirstRender = React.useRef(true);
   const setAutoRepostBid = amount => {
@@ -173,17 +175,6 @@ function RepostCreate(props: Props) {
   if (!enteredContent && enteredContent !== undefined) {
     contentNameError = __('A name is required');
   }
-
-  // repostChannel
-  const channelStrings = channels && channels.map(channel => channel.permanent_url).join(',');
-  React.useEffect(() => {
-    if (!repostChannel && channelStrings) {
-      const channels = channelStrings.split(',');
-      const newChannelUrl = channels[0];
-      const { claimName } = parseURI(newChannelUrl);
-      setRepostChannel(claimName);
-    }
-  }, [channelStrings]);
 
   React.useEffect(() => {
     if (enteredRepostName && isNameValid(enteredRepostName, false)) {
@@ -288,12 +279,11 @@ function RepostCreate(props: Props) {
   };
 
   function handleSubmit() {
-    const channelToRepostTo = channels && channels.find(channel => channel.name === repostChannel);
     if (enteredRepostName && repostBid && repostClaimId) {
       doRepost({
         name: enteredRepostName,
         bid: creditsToString(repostBid),
-        channel_id: channelToRepostTo ? channelToRepostTo.claim_id : undefined,
+        channel_id: activeChannelClaim ? activeChannelClaim.claim_id : undefined,
         claim_id: repostClaimId,
       }).then((repostClaim: StreamClaim) => {
         doCheckPendingClaims();
@@ -307,6 +297,14 @@ function RepostCreate(props: Props) {
   function cancelIt() {
     doClearRepostError();
     goBack();
+  }
+
+  if (fetchingMyChannels) {
+    return (
+      <div className="main--empty">
+        <Spinner />
+      </div>
+    );
   }
 
   return (
@@ -334,6 +332,7 @@ function RepostCreate(props: Props) {
                 />
               </>
             )}
+
             {!uri && (
               <fieldset-section>
                 <ClaimPreview key={contentUri} uri={contentUri} actions={''} type={'large'} showNullPlaceholder />
@@ -366,12 +365,6 @@ function RepostCreate(props: Props) {
                 </fieldset-group>
               </fieldset-section>
 
-              {/* <SelectChannel
-                label={__('Channel to repost to')}
-                channel={repostChannel}
-                onChannelChange={newChannel => setRepostChannel(newChannel)}
-              /> */}
-
               <FormField
                 type="number"
                 name="repost_bid"
@@ -387,6 +380,7 @@ function RepostCreate(props: Props) {
                     {__('Winning amount: %amount%', {
                       amount: Number(takeoverAmount).toFixed(2),
                     })}
+                    <WalletSpendableBalanceHelp inline />
                   </>
                 }
                 disabled={!enteredRepostName || resolvingRepost}
