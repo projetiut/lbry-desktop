@@ -1,6 +1,6 @@
-export const LIVE_STREAM_CHANNEL = '@TravCrypto';
-export const LIVE_STREAM_CHANNEL_CLAIM_ID = '8972a1bd06de5186e5e89292b05aac8aaa817791';
-export const BITWAVE_USERNAME = 'travcrypto';
+export const LIVE_STREAM_CHANNEL = '@PressForTruth';
+export const LIVE_STREAM_CHANNEL_CLAIM_ID = '49f1876b382a69414a330995908e326c7b96c132';
+export const BITWAVE_USERNAME = 'pressfortruth';
 
 // export const LIVE_STREAM_CHANNEL = '@sy-test';
 // export const LIVE_STREAM_CHANNEL_CLAIM_ID = '84b50bafd028692c90a25b83d0929defc73154b2';
