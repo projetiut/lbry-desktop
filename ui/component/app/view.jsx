@@ -80,6 +80,9 @@ type Props = {
   syncEnabled: boolean,
   currentModal: any,
   syncFatalError: boolean,
+  activeChannelId: ?string,
+  myChannelUrls: ?Array<string>,
+  setActiveChannelIfNotSet: (?string) => void,
 };
 
 function App(props: Props) {
@@ -106,6 +109,9 @@ function App(props: Props) {
     syncLoop,
     currentModal,
     syncFatalError,
+    activeChannelId,
+    myChannelUrls,
+    setActiveChannelIfNotSet,
   } = props;
 
   const appRef = useRef();
@@ -133,7 +139,7 @@ function App(props: Props) {
   const shouldHideNag = pathname.startsWith(`/$/${PAGES.EMBED}`) || pathname.startsWith(`/$/${PAGES.AUTH_VERIFY}`);
   const userId = user && user.id;
   const useCustomScrollbar = !IS_MAC;
-
+  const hasMyChannels = myChannelUrls && myChannelUrls.length > 0;
   const shouldMigrateLanguage = LANGUAGE_MIGRATIONS[language];
 
   let uri;
@@ -227,6 +233,12 @@ function App(props: Props) {
     // $FlowFixMe
     document.documentElement.setAttribute('theme', theme);
   }, [theme]);
+
+  useEffect(() => {
+    if (hasMyChannels && !activeChannelId) {
+      setActiveChannelIfNotSet();
+    }
+  }, [hasMyChannels, activeChannelId, setActiveChannelIfNotSet]);
 
   useEffect(() => {
     if (!languages.includes(language)) {

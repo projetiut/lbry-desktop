@@ -11,6 +11,7 @@ import {
   selectCommentChannel,
 } from 'redux/selectors/comments';
 import { makeSelectNotificationForCommentId } from 'redux/selectors/notifications';
+import { selectActiveChannelClaim } from 'redux/selectors/app';
 
 export function doCommentList(uri: string, page: number = 1, pageSize: number = 99999) {
   return (dispatch: Dispatch, getState: GetState) => {
@@ -61,22 +62,20 @@ export function doSetCommentChannel(channelName: string) {
 export function doCommentReactList(uri: string | null, commentId?: string) {
   return (dispatch: Dispatch, getState: GetState) => {
     const state = getState();
-    const channel = selectCommentChannel(state);
+    const activeChannelClaim = selectActiveChannelClaim(state);
     const commentIds = uri ? makeSelectCommentIdsForUri(uri)(state) : [commentId];
-    const myChannels = selectMyChannelClaims(state);
 
     dispatch({
       type: ACTIONS.COMMENT_REACTION_LIST_STARTED,
     });
+
     const params: { comment_ids: string, channel_name?: string, channel_id?: string } = {
       comment_ids: commentIds.join(','),
     };
 
-    if (channel && myChannels) {
-      const claimForChannelName = myChannels && myChannels.find(chan => chan.name === channel);
-      const channelId = claimForChannelName && claimForChannelName.claim_id;
-      params['channel_name'] = channel;
-      params['channel_id'] = channelId;
+    if (activeChannelClaim) {
+      params['channel_name'] = activeChannelClaim.name;
+      params['channel_id'] = activeChannelClaim.claim_id;
     }
 
     return Lbry.comment_react_list(params)
@@ -299,6 +298,7 @@ export function doCommentHide(comment_id: string) {
 export function doCommentPin(commentId: string, remove: boolean) {
   return (dispatch: Dispatch, getState: GetState) => {
     const state = getState();
+
     // const channel = localStorage.getItem('comment-channel');
     const channel = selectCommentChannel(state);
     const myChannels = selectMyChannelClaims(state);

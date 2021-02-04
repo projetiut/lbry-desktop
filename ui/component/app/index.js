@@ -5,17 +5,27 @@ import { selectGetSyncErrorMessage, selectSyncFatalError } from 'redux/selectors
 import { doFetchAccessToken, doUserSetReferrer } from 'redux/actions/user';
 import { selectUser, selectAccessToken, selectUserVerifiedEmail } from 'redux/selectors/user';
 import { selectUnclaimedRewards } from 'redux/selectors/rewards';
-import { doFetchChannelListMine, SETTINGS } from 'lbry-redux';
+import { doFetchChannelListMine, selectMyChannelUrls, SETTINGS } from 'lbry-redux';
 import {
   makeSelectClientSetting,
   selectLanguage,
   selectLoadedLanguages,
   selectThemePath,
 } from 'redux/selectors/settings';
-import { selectIsUpgradeAvailable, selectAutoUpdateDownloaded, selectModal } from 'redux/selectors/app';
+import {
+  selectIsUpgradeAvailable,
+  selectAutoUpdateDownloaded,
+  selectModal,
+  selectActiveChannelId,
+} from 'redux/selectors/app';
 import { doGetWalletSyncPreference, doSetLanguage } from 'redux/actions/settings';
 import { doSyncLoop } from 'redux/actions/sync';
-import { doDownloadUpgradeRequested, doSignIn, doGetAndPopulatePreferences } from 'redux/actions/app';
+import {
+  doDownloadUpgradeRequested,
+  doSignIn,
+  doGetAndPopulatePreferences,
+  doSetActiveChannel,
+} from 'redux/actions/app';
 import App from './view';
 
 const select = state => ({
@@ -33,6 +43,8 @@ const select = state => ({
   isAuthenticated: selectUserVerifiedEmail(state),
   currentModal: selectModal(state),
   syncFatalError: selectSyncFatalError(state),
+  activeChannel: selectActiveChannelId(state),
+  myChannelUrls: selectMyChannelUrls(state),
 });
 
 const perform = dispatch => ({
@@ -45,6 +57,7 @@ const perform = dispatch => ({
   getWalletSyncPref: () => dispatch(doGetWalletSyncPreference()),
   syncLoop: noInterval => dispatch(doSyncLoop(noInterval)),
   setReferrer: (referrer, doClaim) => dispatch(doUserSetReferrer(referrer, doClaim)),
+  setActiveChannelIfNotSet: () => dispatch(doSetActiveChannel()),
 });
 
 export default hot(connect(select, perform)(App));
