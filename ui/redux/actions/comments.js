@@ -50,14 +50,14 @@ export function doCommentList(uri: string, page: number = 1, pageSize: number = 
   };
 }
 
-export function doSetCommentChannel(channelName: string) {
-  return (dispatch: Dispatch) => {
-    dispatch({
-      type: ACTIONS.COMMENT_SET_CHANNEL,
-      data: channelName,
-    });
-  };
-}
+// export function doSetCommentChannel(channelName: string) {
+//   return (dispatch: Dispatch) => {
+//     dispatch({
+//       type: ACTIONS.COMMENT_SET_CHANNEL,
+//       data: channelName,
+//     });
+//   };
+// }
 
 export function doCommentReactList(uri: string | null, commentId?: string) {
   return (dispatch: Dispatch, getState: GetState) => {
@@ -196,15 +196,16 @@ export function doCommentReact(commentId: string, type: string) {
   };
 }
 
-export function doCommentCreate(
-  comment: string = '',
-  claim_id: string = '',
-  channel: string,
-  parent_id?: string,
-  uri: string
-) {
+export function doCommentCreate(comment: string = '', claim_id: string = '', parent_id?: string, uri: string) {
   return (dispatch: Dispatch, getState: GetState) => {
     const state = getState();
+    const activeChannelClaim = selectActiveChannelClaim(state);
+
+    if (!activeChannelClaim) {
+      console.error('Unable to create comment. No activeChannel is set.'); // eslint-disable-line
+      return;
+    }
+
     dispatch({
       type: ACTIONS.COMMENT_CREATE_STARTED,
     });
@@ -216,28 +217,10 @@ export function doCommentCreate(
       }
     }
 
-    const myChannels = selectMyChannelClaims(state);
-    const namedChannelClaim = myChannels && myChannels.find(myChannel => myChannel.name === channel);
-    const channel_id = namedChannelClaim.claim_id;
-
-    if (channel_id == null) {
-      dispatch({
-        type: ACTIONS.COMMENT_CREATE_FAILED,
-        data: {},
-      });
-      dispatch(
-        doToast({
-          message: 'Channel cannot be anonymous, please select a channel and try again.',
-          isError: true,
-        })
-      );
-      return;
-    }
-
     return Lbry.comment_create({
       comment: comment,
       claim_id: claim_id,
-      channel_id: channel_id,
+      channel_id: activeChannelClaim.claim_id,
       parent_id: parent_id,
     })
       .then((result: CommentCreateResponse) => {
@@ -298,33 +281,23 @@ export function doCommentHide(comment_id: string) {
 export function doCommentPin(commentId: string, remove: boolean) {
   return (dispatch: Dispatch, getState: GetState) => {
     const state = getState();
+    const activeChannel = selectActiveChannelClaim(state);
 
-    // const channel = localStorage.getItem('comment-channel');
-    const channel = selectCommentChannel(state);
-    const myChannels = selectMyChannelClaims(state);
-    const claimForChannelName = myChannels && myChannels.find(chan => chan.name === channel);
-    const channelId = claimForChannelName && claimForChannelName.claim_id;
+    if (!activeChannel) {
+      console.error('Unable to pin comment. No activeChannel is set.'); // eslint-disable-line
+      return;
+    }
 
     dispatch({
       type: ACTIONS.COMMENT_PIN_STARTED,
     });
-    if (!channelId || !channel || !commentId) {
-      return dispatch({
-        type: ACTIONS.COMMENT_PIN_FAILED,
-        data: { message: 'missing params - unable to pin' },
-      });
-    }
-    const params: { comment_id: string, channel_name: string, channel_id: string, remove?: boolean } = {
+
+    return Lbry.comment_pin({
       comment_id: commentId,
-      channel_name: channel,
-      channel_id: channelId,
-    };
-
-    if (remove) {
-      params['remove'] = true;
-    }
-
-    return Lbry.comment_pin(params)
+      channel_name: activeChannel.name,
+      channel_id: activeChannel.claim_id,
+      ...(remove ? { remove: true } : {}),
+    })
       .then((result: CommentPinResponse) => {
         dispatch({
           type: ACTIONS.COMMENT_PIN_COMPLETED,

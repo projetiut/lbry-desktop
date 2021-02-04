@@ -364,7 +364,6 @@ function RepostCreate(props: Props) {
               </fieldset-section>
               <SelectChannel
                 label={__('Channel to repost on')}
-                hideNew
                 channel={repostChannel}
                 onChannelChange={newChannel => setRepostChannel(newChannel)}
               />

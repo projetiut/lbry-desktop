@@ -43,7 +43,7 @@ const select = state => ({
   isAuthenticated: selectUserVerifiedEmail(state),
   currentModal: selectModal(state),
   syncFatalError: selectSyncFatalError(state),
-  activeChannel: selectActiveChannelId(state),
+  activeChannelId: selectActiveChannelId(state),
   myChannelUrls: selectMyChannelUrls(state),
 });
 
